@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # [esp-homekit](https://github.com/maximkulkin/esp-homekit) 在 ESP32 上移植
 
 [esp-homekit](https://github.com/maximkulkin/esp-homekit) 是 `Apple HomeKit` 配件服务器库，可以在 `esp8266` 和 `esp32` 上使用，以下是 [esp-homekit](https://github.com/maximkulkin/esp-homekit)  是基于 [esp-idf](https://github.com/espressif/esp-idf) 在 `esp32` 上的移植步骤。
@@ -94,3 +95,6 @@
 ## 参考
 
 - 参考 [esp32-homekit-camera](https://github.com/maximkulkin/esp32-homekit-camera) 中的 `makefile` 和 项目目录
+=======
+# esp32_homekit
+>>>>>>> d58df106901fa021d938127881417941a4fe7509
