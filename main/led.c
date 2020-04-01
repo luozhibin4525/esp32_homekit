@@ -13,10 +13,31 @@
 #include <homekit/homekit.h>
 #include <homekit/characteristics.h>
 
+// #include "smartconfig.h"
+#include "key.h"
+
+void on_wifi_ready();
+
+// const wifi_conf_t wifi_config = {
+//     .mode = SC_MODE,
+//     .compelete_cb = on_wifi_ready,
+
+// };
+
+/*
+===========================
+全局变量
+=========================== 
+*/
+/* 填充需要配置的按键个数以及对应的相关参数 */
+static key_config_t gs_m_key_config[BOARD_BUTTON_COUNT] =
+    {
+        {BOARD_BUTTON, APP_KEY_ACTIVE_HIGH, 0, LONG_PRESSED_TIMER},
+};
+
 
 homekit_characteristic_t name = HOMEKIT_CHARACTERISTIC_(NAME, "SPHome");
 
-void on_wifi_ready();
 
 char *device_name_get(void)
 {
@@ -63,8 +84,8 @@ static void wifi_init() {
 
     wifi_config_t wifi_config = {
         .sta = {
-            .ssid = "maxinf",
-            .password = "maxinf951!",
+            .ssid = "TP-LINK_BAA6",
+            .password = "12344321",
         },
     };
 
@@ -136,11 +157,11 @@ homekit_accessory_t *accessories[] = {
             NULL
         }),
         HOMEKIT_SERVICE(LIGHTBULB, .primary=true, .characteristics=(homekit_characteristic_t*[]){
-            HOMEKIT_CHARACTERISTIC(NAME, "Sample LED"),
+            HOMEKIT_CHARACTERISTIC(NAME, "Smart LED"),
             HOMEKIT_CHARACTERISTIC(
                 ON, false,
                 .getter=led_on_get,
-                .setter=led_on_set
+                .setter=led_on_set,
             ),
             NULL
         }),
@@ -158,18 +179,112 @@ homekit_server_config_t config = {
 void on_wifi_ready() {
     homekit_server_init(&config);
 }
+/** 
+ * 用户的短按处理函数
+ * @param[in]   key_num                 :短按按键对应GPIO口
+ * @param[in]   short_pressed_counts    :短按按键对应GPIO口按下的次数,这里用不上
+ * @retval      null
+ * @par         修改日志 
+ *               Ver0.0.1:
+                     Helon_Chan, 2018/06/16, 初始化版本\n 
+ */
+static void short_pressed_cb(uint8_t key_num, uint8_t *short_pressed_counts)
+{
+  static uint8_t s_sigle_click_num = 0;
+  static uint8_t s_city_select = 0;
+  switch (key_num)
+  {
+  case BOARD_BUTTON:
+    switch (*short_pressed_counts)
+    {
+    case 1:
+      ESP_LOGI("short_pressed_cb", "first press!!!\n");
+      switch (s_sigle_click_num)
+      {
+      case 0:
+        led_write(1);
+        led_on = 1;
+
+        break;
+      case 1:
+        led_write(0);
+        led_on = 0;
+        break;
+      }
+      led_on_get();
+      s_sigle_click_num ^= 1;
+
+      break;
+    case 2:
+      ESP_LOGI("short_pressed_cb", "double press!!!\n");
+      break;
+    case 3:
+      ESP_LOGI("short_pressed_cb", "trible press!!!\n");
+      break;
+    case 4:
+      ESP_LOGI("short_pressed_cb", "quatary press!!!\n");
+      break;
+      // case ....:
+      // break;
+    }
+    *short_pressed_counts = 0;
+    break;
+
+  default:
+    break;
+  }
+}
+
+/** 
+ * 用户的长按处理函数
+ * @param[in]   key_num                 :短按按键对应GPIO口
+ * @param[in]   long_pressed_counts     :按键对应GPIO口按下的次数,这里用不上
+ * @retval      null
+ * @par         修改日志 
+ *               Ver0.0.1:
+                     Helon_Chan, 2018/06/16, 初始化版本\n 
+ */
+static void long_pressed_cb(uint8_t key_num, uint8_t *long_pressed_counts)
+{
+  switch (key_num)
+  {
+  case BOARD_BUTTON:
+    ESP_LOGI("long_pressed_cb", "long press!!!\n");
+    break;
+  default:
+    break;
+  }
+}
+
+/** 
+ * 用户的按键初始化函数
+ * @param[in]   null 
+ * @retval      null
+ * @par         修改日志 
+ *               Ver0.0.1:
+                     Helon_Chan, 2018/06/16, 初始化版本\n 
+ */
+static void user_app_key_init(void)
+{
+  int32_t err_code;
+  err_code = user_key_init(gs_m_key_config, BOARD_BUTTON_COUNT, DECOUNE_TIMER, long_pressed_cb, short_pressed_cb);
+  ESP_LOGI("user_app_key_init", "user_key_init is %d\n", err_code);
+}
+
 
 void app_main(void) {
     // Initialize NVS
-    esp_err_t ret = nvs_flash_init();
-    if (ret == ESP_ERR_NVS_NO_FREE_PAGES) {
-        ESP_ERROR_CHECK(nvs_flash_erase());
-        ret = nvs_flash_init();
-    }
-    ESP_ERROR_CHECK( ret );
-
+    // esp_err_t ret = nvs_flash_init();
+    // if (ret == ESP_ERR_NVS_NO_FREE_PAGES) {
+    //     ESP_ERROR_CHECK(nvs_flash_erase());
+    //     ret = nvs_flash_init();
+    // }
+    // ESP_ERROR_CHECK( ret );
+    ESP_ERROR_CHECK(nvs_flash_init());
     name.value = HOMEKIT_STRING(device_name_get());
 
     wifi_init();
+    //initialise_wifi(&wifi_config);
     led_init();
+    user_app_key_init();
 }
