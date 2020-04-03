@@ -18,7 +18,7 @@
 #define BOARD_BUTTON_COUNT                  1
 #define BOARD_BUTTON                        GPIO_NUM_34
 #define BOARD_BUTTON_NUM                    GPIO_ID_PIN(GPIO_NUM_34)
-#define DECOUNE_TIMER                       10*1000                                 ///< 10mS
+#define DECOUNE_TIMER                       10//10*1000                                 ///< 10mS
 #define SHORT_PRESS_DELAY_CHECK             150*1000                                ///< 150ms
 #define LONG_PRESSED_TIMER                  5000*1000                               ///< 5000mS
 #define MULTI_PRESSED_TIMER                 250                                     ///< 250mS,,表示前一个按键释放与后一个按键按下的时间小于等于此值说明是多击
