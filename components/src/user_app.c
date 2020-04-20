@@ -1,10 +1,15 @@
 #include "user_app.h"
 
 #define TAG "user_app"
-// const wifi_conf_t wifi_config = {
-//     .mode = SC_MODE,
-//     .compelete_cb = on_wifi_ready,
-// };
+
+void on_wifi_ready();
+/*WIFI 配置初始化*/
+const wifi_conf_t wifi_config = {
+    .mode = SC_MODE,
+    .compelete_cb = on_wifi_ready,
+};
+
+/*灯状态初始化*/
 static light_ctl_t light_t = {
     .power = 0,
     .brightness = 4000
@@ -35,12 +40,12 @@ static void short_pressed_cb(uint8_t key_num, uint8_t *short_pressed_counts)
     {
     case 1:
         ESP_LOGI("short_pressed_cb", "first press!!!\n");
-        if(light_t.power) 
+        if(light_t.power) /*开灯*/
         {
             light_t.power = 0;
             set_led_brightness(0);
         }
-        else 
+        else /*关灯*/
         {
             light_t.power = 1;
             //light_t.brightness = 4000;      //50% brightness
@@ -90,28 +95,27 @@ static void long_pressed_cb(uint8_t key_num, uint8_t *long_pressed_counts)
   int brightness_tmp = 0;
   switch (key_num)
   {
-  case BOARD_BUTTON:
-    ESP_LOGI("long_pressed_cb", "long press!!!\n");
-    if(light_t.power) {
-        if(s_press_count){
-            /*全亮*/
-            light_t.brightness = LED_MAX_DUTY;
-            set_led_brightness_fade_time(light_t.brightness, 3000);
-        }
+    case BOARD_BUTTON:
+        ESP_LOGI("long_pressed_cb", "long press!!!\n");
+        if(light_t.power) {
+            if(s_press_count){
+                /*全亮*/
+                light_t.brightness = LED_MAX_DUTY;
+                set_led_brightness_fade_time(light_t.brightness, 3000);
+            }
+            else{
+             /*变暗*/
+                light_t.brightness = 100;
+                set_led_brightness_fade_time(light_t.brightness, 3000);
+            }
 
-        else{
-            /*变暗*/
-            light_t.brightness = 100;
-            set_led_brightness_fade_time(light_t.brightness, 3000);
-        }
-
-        s_press_count ^= 1;
+            s_press_count ^= 1;
         
-        /* 更新homekit数据 */
-        brightness_tmp = light_t.brightness * LED_BRIGHTNESS_MAX/ LED_MAX_DUTY ;
-        set_light_switch(light_t.power);
-        set_light_brightness(brightness_tmp); //100 8000
-    }
+             /* 更新homekit数据 */
+            brightness_tmp = light_t.brightness * LED_BRIGHTNESS_MAX/ LED_MAX_DUTY ;
+            set_light_switch(light_t.power);
+            set_light_brightness(brightness_tmp); //100 8000
+        }
     break;
   default:
     break;
@@ -133,7 +137,7 @@ static void user_app_key_init(void)
     ESP_LOGI("user_app_key_init", "user_key_init is %d\n", err_code);
 }
 
-
+/*homekit 亮度回调*/
 void light_brightness_event_update(int brightness)
 {
     
@@ -141,7 +145,7 @@ void light_brightness_event_update(int brightness)
     ESP_LOGI(TAG, "light_t.brightness %d",light_t.brightness);
 
 }
-
+/*homekit 开关回调*/
 void light_switch_event_update(bool onoff, int brightness)
 {
     light_t.power = onoff;
@@ -171,7 +175,7 @@ void on_wifi_ready() {
  *               Ver0.0.1:
                  初始化版本\n 
  */
-esp_err_t event_handler(void *ctx, system_event_t *event)
+/*esp_err_t event_handler(void *ctx, system_event_t *event)
 {
     switch(event->event_id) {
         case SYSTEM_EVENT_STA_START:
@@ -190,7 +194,7 @@ esp_err_t event_handler(void *ctx, system_event_t *event)
             break;
     }
     return ESP_OK;
-}
+}*/
 
 /** 
  * wifi初始化
@@ -201,7 +205,7 @@ esp_err_t event_handler(void *ctx, system_event_t *event)
                  初始化版本\n 
  */
 static void wifi_init() {
-    tcpip_adapter_init();
+   /* tcpip_adapter_init();
     ESP_ERROR_CHECK(esp_event_loop_init(event_handler, NULL));
 
     wifi_init_config_t wifi_init_config = WIFI_INIT_CONFIG_DEFAULT();
@@ -210,14 +214,16 @@ static void wifi_init() {
 
     wifi_config_t wifi_config = {
         .sta = {
-            .ssid = "TP-LINK_BAA6",
-            .password = "12344321",
+            .ssid = "wifi的ssid",
+            .password = "wifi的密码",
         },
     };
 
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
     ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config));
-    ESP_ERROR_CHECK(esp_wifi_start());
+    ESP_ERROR_CHECK(esp_wifi_start()); */
+
+    initialise_wifi(&wifi_config);
 }
 
 /** 

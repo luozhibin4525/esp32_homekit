@@ -12,6 +12,7 @@
 
 #include "key.h"
 #include "user_led.h"
+#include "smartconfig.h"
 #include "user_homekit.h"
 
 typedef struct 

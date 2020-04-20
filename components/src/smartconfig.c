@@ -17,18 +17,29 @@ static void smartconfig_example_task(void * parm);
 static void event_handler(void* arg, esp_event_base_t event_base, 
                                 int32_t event_id, void* event_data)
 {
-    if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START) {
-        xTaskCreate(smartconfig_example_task, "smartconfig_example_task", 4096, NULL, 3, NULL);
-    } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED) {
+    if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START) 
+    {
+        //xTaskCreate(smartconfig_example_task, "smartconfig_example_task", 4096, NULL, 3, NULL);
+
+    } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED) 
+    {
         esp_wifi_connect();
         xEventGroupClearBits(s_wifi_event_group, CONNECTED_BIT);
-    } else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
+
+    } else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) 
+    {
         xEventGroupSetBits(s_wifi_event_group, CONNECTED_BIT);
-    } else if (event_base == SC_EVENT && event_id == SC_EVENT_SCAN_DONE) {
+
+    } else if (event_base == SC_EVENT && event_id == SC_EVENT_SCAN_DONE) 
+    {
         ESP_LOGI(TAG, "Scan done");
-    } else if (event_base == SC_EVENT && event_id == SC_EVENT_FOUND_CHANNEL) {
+
+    } else if (event_base == SC_EVENT && event_id == SC_EVENT_FOUND_CHANNEL)   
+    {
         ESP_LOGI(TAG, "Found channel");
-    } else if (event_base == SC_EVENT && event_id == SC_EVENT_GOT_SSID_PSWD) {
+
+    } else if (event_base == SC_EVENT && event_id == SC_EVENT_GOT_SSID_PSWD) 
+    {
         ESP_LOGI(TAG, "Got SSID and password");
 
         smartconfig_event_got_ssid_pswd_t *evt = (smartconfig_event_got_ssid_pswd_t *)event_data;
@@ -59,6 +70,8 @@ static void event_handler(void* arg, esp_event_base_t event_base,
 
 void initialise_wifi(wifi_conf_t *config)
 {
+    static wifi_config_t wifi_config;
+
     /*wifi config*/
     if(config != NULL) {
         wifi_conf.mode = config->mode;
@@ -68,7 +81,6 @@ void initialise_wifi(wifi_conf_t *config)
         }
 
     }
-
 
     tcpip_adapter_init();
     s_wifi_event_group = xEventGroupCreate();
@@ -83,6 +95,23 @@ void initialise_wifi(wifi_conf_t *config)
 
     ESP_ERROR_CHECK( esp_wifi_set_mode(WIFI_MODE_STA) );
     ESP_ERROR_CHECK( esp_wifi_start() );
+
+    ESP_ERROR_CHECK(esp_wifi_get_config(ESP_IF_WIFI_STA, &wifi_config));
+
+    if(wifi_config.sta.ssid[0]!= 0)
+    {
+        xEventGroupSetBits(s_wifi_event_group, CONNECTED_BIT);
+        ESP_ERROR_CHECK(esp_wifi_connect());
+        wifi_conf.compelete_cb();
+        return;
+    }
+
+    if( wifi_conf.mode == SC_MODE)
+    {
+        xTaskCreate(smartconfig_example_task, "smartconfig_example_task", 4096, NULL, 3, NULL);
+    }
+    
+
 }
 
 static void smartconfig_example_task(void * parm)
